@@ -206,6 +206,102 @@
       border-color: rgba(255,255,255,0.1);
     }
 
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 24px;
+      margin-top: 42px;
+    }
+
+    .panel {
+      background: rgba(17, 35, 53, 0.82);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      padding: 22px 20px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    }
+
+    .panel h2 {
+      margin: 0 0 18px;
+      font-size: 1.65rem;
+      letter-spacing: -0.04em;
+    }
+
+    .teacher-list,
+    .user-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .teacher-card,
+    .user-card {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 18px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .teacher-avatar,
+    .user-avatar {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, rgba(123, 192, 255, 0.24), rgba(149, 138, 255, 0.22));
+      font-weight: 800;
+      color: #edf7ff;
+      flex-shrink: 0;
+    }
+
+    .teacher-info,
+    .user-info {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .teacher-info strong,
+    .user-info strong {
+      display: block;
+      font-size: 1rem;
+      margin-bottom: 4px;
+    }
+
+    .teacher-info small,
+    .user-info small,
+    .teacher-info span,
+    .user-info span {
+      display: block;
+      color: rgba(233, 241, 255, 0.73);
+      line-height: 1.6;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 82px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(123, 196, 255, 0.12);
+      color: #dff5ff;
+      font-size: 0.74rem;
+      font-weight: 700;
+    }
+
+    .empty-state {
+      color: rgba(233, 241, 255, 0.7);
+      padding: 18px;
+      border-radius: 12px;
+      text-align: center;
+      background: rgba(255,255,255,0.02);
+      border: 1px dashed rgba(255,255,255,0.08);
+    }
+
     @media (max-width: 980px) {
       .navbar {
         flex-wrap: wrap;
@@ -265,7 +361,7 @@
         ด้วยดีไซน์ทันสมัย
       </h1>
 
-      <p>
+      <p id="heroText">
         ยินดีต้อนรับสู่สาขาสาระสนเทศ วิทยาลัยอาชีวนครศรีธรรมราช
         ที่เน้นการเรียนรู้ด้านคอมพิวเตอร์ เครือข่าย และระบบสารสนเทศ
         พร้อมห้องปฏิบัติการทันสมัยและทีมอาจารย์ผู้เชี่ยวชาญ.
@@ -276,6 +372,119 @@
         <a class="btn btn-secondary" href="#">ติดต่อสาขา</a>
       </div>
     </main>
+
+    <section class="content-grid">
+      <div class="panel">
+        <h2>อาจารย์ประจำสาขา</h2>
+        <div id="teacherList" class="teacher-list"></div>
+      </div>
+
+      <div class="panel">
+        <h2>ผู้ใช้งานระบบ</h2>
+        <div id="userList" class="user-list"></div>
+      </div>
+    </section>
   </div>
+
+  <script>
+    const teacherList = document.getElementById('teacherList');
+    const userList = document.getElementById('userList');
+    const heroText = document.getElementById('heroText');
+
+    async function fetchJson(url) {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error('Request failed');
+      }
+      return response.json();
+    }
+
+    function renderTeachers(teachers) {
+      if (!Array.isArray(teachers) || teachers.length === 0) {
+        teacherList.innerHTML = '<div class="empty-state">ยังไม่มีข้อมูลอาจารย์</div>';
+        return;
+      }
+
+      teacherList.innerHTML = teachers.slice(0, 4).map((teacher) => {
+        const initials = (teacher.full_name || 'IT')
+          .split(' ')
+          .map((word) => word.charAt(0))
+          .slice(0, 2)
+          .join('')
+          .toUpperCase();
+
+        return `
+          <div class="teacher-card">
+            <div class="teacher-avatar">${initials}</div>
+            <div class="teacher-info">
+              <strong>${teacher.full_name || 'ไม่ระบุชื่อ'}</strong>
+              <small>${teacher.position || 'ครูประจำสาขา'}</small>
+              <span>${teacher.expertise || 'การฝึกอบรมและพัฒนาทักษะด้านสารสนเทศ'}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderUsers(users) {
+      if (!Array.isArray(users) || users.length === 0) {
+        userList.innerHTML = '<div class="empty-state">ยังไม่มีข้อมูลผู้ใช้</div>';
+        return;
+      }
+
+      userList.innerHTML = users.slice(0, 5).map((user) => {
+        const initials = (user.full_name || 'User')
+          .split(' ')
+          .map((word) => word.charAt(0))
+          .slice(0, 2)
+          .join('')
+          .toUpperCase();
+
+        return `
+          <div class="user-card">
+            <div class="user-avatar">${initials}</div>
+            <div class="user-info">
+              <strong>${user.full_name || 'ผู้ใช้งาน'}</strong>
+              <small>${user.email || 'no-email@example.com'}</small>
+              <span>${user.role || 'นักศึกษา'} • ${user.phone || 'ไม่ระบุเบอร์'}</span>
+            </div>
+            <span class="status-badge">${user.status || 'ว่าง'}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function loadPageData() {
+      try {
+        const [teachers, users] = await Promise.all([
+          fetchJson('/api/teachers').catch(() => [
+            { full_name: 'นางสาวสมใจ ใจดี', position: 'ครูแผนกเทคโนโลยีสารสนเทศ', expertise: 'Web Development, Database, JavaScript' },
+            { full_name: 'นายวิชัย กล้าหาญ', position: 'ครูแผนกเทคโนโลยีสารสนเทศ', expertise: 'Network, Linux, Cybersecurity' },
+            { full_name: 'นางสาวพรพรรณ ทองดี', position: 'ครูแผนกเทคโนโลยีสารสนเทศ', expertise: 'UI/UX, Frontend, Design Thinking' }
+          ]),
+          fetchJson('/api/users').catch(() => [
+            { full_name: 'นายกิตติศักดิ์ รื่นรมย์', email: 'kittisak@gmail.com', role: 'Admin', phone: '081-111-2222', status: 'ออนไลน์' },
+            { full_name: 'นางสาวณัฐพร พิทักษ์', email: 'natthaporn@gmail.com', role: 'ผู้ดูแลระบบ', phone: '082-333-4444', status: 'ว่าง' },
+            { full_name: 'นายชาญชัย ปัญญา', email: 'chanchai@gmail.com', role: 'นักศึกษา', phone: '083-555-6666', status: 'ออนไลน์' }
+          ])
+        ]);
+
+        renderTeachers(teachers);
+        renderUsers(users);
+
+        if (teachers && teachers.length > 0) {
+          const firstTeacher = teachers[0];
+          if (firstTeacher.position) {
+            heroText.textContent = `ยินดีต้อนรับสู่สาขาสาระสนเทศ วิทยาลัยอาชีวนครศรีธรรมราช โดยมี ${teachers.length} ท่านอาจารย์ที่พร้อมสอนด้าน ${firstTeacher.expertise || 'เทคโนโลยีสารสนเทศ'} ให้กับนักศึกษาอย่างเข้มข้นและใกล้ชิดกับการปฏิบัติจริง.`;
+          }
+        }
+      } catch (error) {
+        teacherList.innerHTML = '<div class="empty-state">ไม่สามารถโหลดข้อมูลอาจารย์ได้</div>';
+        userList.innerHTML = '<div class="empty-state">ไม่สามารถโหลดข้อมูลผู้ใช้ได้</div>';
+      }
+    }
+
+    loadPageData();
+  </script>
 </body>
 </html>
